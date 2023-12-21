@@ -1,0 +1,78 @@
+# Extract XML to CSV
+# Sage Katwala
+# updated 12/21/2023 
+# final ?
+
+
+$name = @{
+‘pw’ = ‘Name’
+‘path’ = “./ACTUAL_NAME”}
+
+
+$arcPath = “Z:\cta-archives”
+
+
+Get-ChildItem -Path $arcPath | Foreach-Object {
+    $project = $_.Name
+    Write-Host $project
+
+    $projectPath = “Z:\cta-archives\” +$project +“\Documents\Metadata”
+    $csvPath = “C:\Users\skatwala.int\Desktop\testing xml to excel files\”+$project + “_op.csv”
+
+
+    If (Test-Path -path $csvPath) {
+        Write-Host $project "The file exists" -f Green
+    } 
+    Else{
+        Write-Host $project "The file does not exist"  -f Yellow
+       
+    	$counter=0
+        #set up data table for project folder
+        $dt = new-object "System.Data.DataTable"
+            
+        #columns
+        $xmlnameCol = New-Object system.Data.DataColumn ‘XML file name - not for import’ 
+        $nameCol = New-Object system.Data.DataColumn $name['pw']
+        $dfnCol = New-Object system.Data.DataColumn ‘Document File Name’
+        
+        #add columns
+        $Cols = $xmlnameCol,$nameCol,$dfnCol
+        
+        # just for testing, will add more
+        ForEach ($col in $Cols) {
+            $dt.columns.add($col)
+            }
+
+        cd $projectPath
+        Get-ChildItem -Path *.xml  -Recurse | Foreach-Object {
+            $xmlFilePath = $_.FullName
+            Write-Host $xmlFilePath
+            $xmlObject = [xml](Get-Content -Path $xmlFilePath)
+            $xmlname = $xmlObject.SelectSingleNode("./FOLDER/@FILE_NAME”).Value
+
+            Write-Host $xmlname
+            
+            foreach ($file in $xmlObject.SelectNodes("/FOLDER/FILE")) {
+                $dfn = $file.SelectSingleNode("./INTERNAL_NAME").InnerText
+
+                If ($dfn.Count -ne 0){
+
+                    $row = $dt.NewRow()
+
+                    # xml elements
+ 
+                    $row.$xmlnameCol = $xmlname
+
+                    $row.$nameCol = $file.SelectSingleNode($name['path']).InnerText
+                    #$file.SelectSingleNode("./ACTUAL_NAME").InnerText
+                    $row.$dfnCol = $file.SelectSingleNode("./INTERNAL_NAME").InnerText
+
+                    #Write-Host $name
+                    $dt.Rows.Add($row)
+                }
+            }
+        }
+        $dt | ConvertTo-Csv -NoTypeInformation | Out-File -FilePath $csvPath -Encoding UTF8
+    }
+}
+
