@@ -4,9 +4,23 @@
 # final ?
 
 
+$xmlfile = @{
+	‘pw’ =  ‘XML file name - not for import’
+	‘path’ = $xmlObject.SelectSingleNode("./FOLDER/@FILE_NAME”).Value}
+
 $name = @{
 ‘pw’ = ‘Name’
 ‘path’ = “./ACTUAL_NAME”}
+$dfn = @{
+‘pw’ = ‘Document File Name’
+‘path’ = “./INTERNAL_NAME”}
+$fp = @{
+‘pw’= ‘File Name’
+‘path’= “./PATH”}
+$date =@{
+‘pw’ = ‘Creation Date’
+‘path’ = “./DOC_DATE”}
+
 
 
 $arcPath = “Z:\cta-archives”
@@ -34,6 +48,7 @@ Get-ChildItem -Path $arcPath | Foreach-Object {
         $xmlnameCol = New-Object system.Data.DataColumn ‘XML file name - not for import’ 
         $nameCol = New-Object system.Data.DataColumn $name['pw']
         $dfnCol = New-Object system.Data.DataColumn ‘Document File Name’
+        $fpCol = New-Object system.Data.DataColumn $fp['pw']
         
         #add columns
         $Cols = $xmlnameCol,$nameCol,$dfnCol
@@ -48,24 +63,25 @@ Get-ChildItem -Path $arcPath | Foreach-Object {
             $xmlFilePath = $_.FullName
             Write-Host $xmlFilePath
             $xmlObject = [xml](Get-Content -Path $xmlFilePath)
-            $xmlname = $xmlObject.SelectSingleNode("./FOLDER/@FILE_NAME”).Value
 
-            Write-Host $xmlname
+            Write-Host $xmlfile['path']
             
             foreach ($file in $xmlObject.SelectNodes("/FOLDER/FILE")) {
-                $dfn = $file.SelectSingleNode("./INTERNAL_NAME").InnerText
+                $dfnCount = ($file.SelectSingleNode("./INTERNAL_NAME").InnerText).Count
 
-                If ($dfn.Count -ne 0){
+                If ($dfnCount -ne 0){
 
                     $row = $dt.NewRow()
 
                     # xml elements
  
-                    $row.$xmlnameCol = $xmlname
+                    $row.$xmlnameCol = $xmlfile['path']
 
                     $row.$nameCol = $file.SelectSingleNode($name['path']).InnerText
                     #$file.SelectSingleNode("./ACTUAL_NAME").InnerText
                     $row.$dfnCol = $file.SelectSingleNode("./INTERNAL_NAME").InnerText
+                    $row.$fpCol = $file.SelectSingleNode($fp['path']).InnerText
+
 
                     #Write-Host $name
                     $dt.Rows.Add($row)
