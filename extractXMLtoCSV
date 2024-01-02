@@ -3,7 +3,6 @@
 # updated 1/2/2024 
 # final ?
 
-#test 1000:  Design Brown Line Kimball Kedzie Francisco Rockwell Western
 
 $xmlfile = @{
 	‘pw’ =  ‘XML file name - not for import’
