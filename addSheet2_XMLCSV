@@ -1,0 +1,56 @@
+# add second page to CSVs 
+# SK 12/2/2024
+
+#---------
+
+# need to ctrl+F to find and replace all "\" to "/" (sorry!! i know it's annoying but just hit "all")
+
+
+#import R packages:
+library(openxlsx) # work with excel workbooks
+library(dplyr) # data manipulation
+library(stringr) # modify strings
+
+#output folder location for addSheet2
+op <- "C:/Users/skatwala.int/Desktop/testing xml to excel files/addSheet2"
+
+
+files <- list.files("C:/Users/skatwala.int/Desktop/testing xml to excel files", "*.csv")
+
+for (file in files){
+  #print(file)
+  path = str_c("C:/Users/skatwala.int/Desktop/testing xml to excel files","/",file)
+  #print(path)
+  f <- read.csv(path)
+  xlname <- str_replace(file,".csv",".xlsx")
+  xlpathName <- str_c(op,"/",xlname)
+  write.xlsx(f, xlpathName)
+### need to edit headers to replace . with spaces
+  
+}
+
+
+
+##############################
+# add sheet2
+
+sheet2 <- "C:/Users/skatwala.int/OneDrive - Chicago Transit Authority/Oce no contract 09142023/TF_Oce.xlsx"
+files2 <- list.files(op) #output folder location
+  for (file in files2){
+    path = str_c(op,"/",file)
+    
+    t <- as.data.frame(read.xlsx(sheet2, "Sheet2")) #file that contains template for sheet 2
+    h <- data.frame('Environment ID', '102') # extra bits empty columns values
+    
+    wb<- loadWorkbook(path)
+    addWorksheet(wb, "Sheet2")
+    
+    writeData(wb, "Sheet2", h, colNames = FALSE)
+    writeData(wb, "Sheet2", t, colNames = FALSE, startRow = 2)
+    saveWorkbook(wb, 
+                 path,
+                 overwrite = TRUE)
+    
+  }
+
+####### stop here ##################
