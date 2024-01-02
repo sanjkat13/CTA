@@ -1,38 +1,60 @@
 # Extract XML to CSV
 # Sage Katwala
-# updated 12/21/2023 
+# updated 1/2/2024 
 # final ?
 
+#test 1000:  Design Brown Line Kimball Kedzie Francisco Rockwell Western
 
 $xmlfile = @{
 	‘pw’ =  ‘XML file name - not for import’
-	‘path’ = $xmlObject.SelectSingleNode("./FOLDER/@FILE_NAME”).Value}
+	‘path’ = "./FOLDER/@FILE_NAME”}
 
 $name = @{
-‘pw’ = ‘Name’
-‘path’ = “./ACTUAL_NAME”}
+    ‘pw’ = ‘Name’
+    ‘path’ = “./ACTUAL_NAME”}
 $dfn = @{
-‘pw’ = ‘Document File Name’
-‘path’ = “./INTERNAL_NAME”}
+    ‘pw’ = ‘Document File Name’
+    ‘path’ = “./INTERNAL_NAME”}
 $fp = @{
-‘pw’= ‘File Name’
-‘path’= “./PATH”}
-$date =@{
-‘pw’ = ‘Creation Date’
-‘path’ = “./DOC_DATE”}
+    ‘pw’= ‘File Name’
+    ‘path’= “./PATH”}
+$date = @{
+    ‘pw’ = ‘Creation Date’
+    ‘path’ = “./DOC_DATE”}
+$cat =@{
+    ‘pw’ = ‘Document Category’
+    ‘path’ = “./DOC_CATEGORY”}
+$title =@{
+    ‘pw’ = ‘Title’
+    ‘path’ = “./DOC_TITLE”}
+$desc =@{
+    ‘pw’ = ‘Description’
+    ‘path’ = “./DOC_DESCRIPTION”}
+$own =@{
+    ‘pw’ = ‘Author’
+    ‘path’ = “./OWNER”}
+$ownc =@{
+    ‘pw’ = ‘Designed By’
+    ‘path’ = “./OWNER_COMPANY”}
+$auth =@{
+    ‘pw’ = ‘Author’
+    ‘path’ = “./AUTHOR”}
+$authc =@{
+    ‘pw’ = ‘Designed By’
+    ‘path’ = “./AUTHOR_COMPANY”}
 
-
-
+# cta-archives folder path
 $arcPath = “Z:\cta-archives”
 
 
 Get-ChildItem -Path $arcPath | Foreach-Object {
     $project = $_.Name
     Write-Host $project
-
+    $csvcount = 0
     $projectPath = “Z:\cta-archives\” +$project +“\Documents\Metadata”
-    $csvPath = “C:\Users\skatwala.int\Desktop\testing xml to excel files\”+$project + “_op.csv”
+    $csvPath = “C:\Users\skatwala.int\Desktop\testing xml to excel files\”+$project + “_"+ ($csvcount)+".csv”
 
+    $counter=0
 
     If (Test-Path -path $csvPath) {
         Write-Host $project "The file exists" -f Green
@@ -40,55 +62,128 @@ Get-ChildItem -Path $arcPath | Foreach-Object {
     Else{
         Write-Host $project "The file does not exist"  -f Yellow
        
-    	$counter=0
+    	
+        
         #set up data table for project folder
         $dt = new-object "System.Data.DataTable"
-            
-        #columns
+
+    # define/create columns
+        #$countid = New-Object system.Data.DataColumn 'CountID'
         $xmlnameCol = New-Object system.Data.DataColumn ‘XML file name - not for import’ 
         $nameCol = New-Object system.Data.DataColumn $name['pw']
-        $dfnCol = New-Object system.Data.DataColumn ‘Document File Name’
+        $dfnCol = New-Object system.Data.DataColumn $dfn['pw']
         $fpCol = New-Object system.Data.DataColumn $fp['pw']
+        $dateCol = New-Object system.Data.DataColumn $date['pw']
+        $catCol = New-Object system.Data.DataColumn $cat['pw']
+        $titleCol = New-Object system.Data.DataColumn $title['pw']
+        $descCol = New-Object system.Data.DataColumn $desc['pw']
+        $authCol = New-Object system.Data.DataColumn $auth['pw']
+        $authcCol = New-Object system.Data.DataColumn $authc['pw']
+        $projectNameCol = New-Object system.Data.DataColumn 'Project Name'
+        #$ownCol = New-Object system.Data.DataColumn $own['pw']
+        #$owncCol = New-Object system.Data.DataColumn $ownc['pw']
         
         #add columns
-        $Cols = $xmlnameCol,$nameCol,$dfnCol
+        $Cols = 
+        #$countid,
+            $xmlnameCol,
+            $nameCol,
+            $dfnCol,
+            $fpCol,
+            $dateCol,
+            $catCol,
+            $titleCol,
+            $descCol,
+            $authCol,
+            $authcCol,
+            $projectNameCol
+            #$ownCol,
+            #$owncCol
         
-        # just for testing, will add more
+        # add columns to data table
         ForEach ($col in $Cols) {
             $dt.columns.add($col)
             }
 
+
         cd $projectPath
         Get-ChildItem -Path *.xml  -Recurse | Foreach-Object {
             $xmlFilePath = $_.FullName
-            Write-Host $xmlFilePath
+
+            #Write-Host $xmlFilePath
             $xmlObject = [xml](Get-Content -Path $xmlFilePath)
 
-            Write-Host $xmlfile['path']
             
             foreach ($file in $xmlObject.SelectNodes("/FOLDER/FILE")) {
-                $dfnCount = ($file.SelectSingleNode("./INTERNAL_NAME").InnerText).Count
+   
+                $dfnCount = ($file.SelectSingleNode($dfn['path']).InnerText).Count
 
                 If ($dfnCount -ne 0){
-
+                    
                     $row = $dt.NewRow()
 
                     # xml elements
- 
-                    $row.$xmlnameCol = $xmlfile['path']
+
+                    $row.$xmlnameCol = $xmlObject.SelectSingleNode($xmlfile['path']).Value
 
                     $row.$nameCol = $file.SelectSingleNode($name['path']).InnerText
-                    #$file.SelectSingleNode("./ACTUAL_NAME").InnerText
-                    $row.$dfnCol = $file.SelectSingleNode("./INTERNAL_NAME").InnerText
-                    $row.$fpCol = $file.SelectSingleNode($fp['path']).InnerText
-
+                    $row.$dfnCol = $file.SelectSingleNode($dfn['path']).InnerText
+                    $row.$fpCol = ($file.SelectSingleNode($fp['path']).InnerText)+($file.SelectSingleNode($dfn['path']).InnerText)
+                    $row.$dateCol = $file.SelectSingleNode($date['path']).InnerText
+                    $row.$catCol = $file.SelectSingleNode($cat['path']).InnerText
+                    $row.$titleCol = $file.SelectSingleNode($title['path']).InnerText
+                    $row.$descCol = $file.SelectSingleNode($desc['path']).InnerText
+                    #owner + author
+                    $row.$authCol = $file.SelectSingleNode($own['path']).InnerText+";"+$file.SelectSingleNode($auth['path']).InnerText                    
+                    #owner company + author company
+                    $row.$authcCol = $file.SelectSingleNode($ownc['path']).InnerText+";"+$file.SelectSingleNode($authc['path']).InnerText
+                    #$row.$authCol = $file.SelectSingleNode($auth['path']).InnerText
+                    #$row.$authcCol = $file.SelectSingleNode($authc['path']).InnerText
+                    $row.$projectNameCol = $project
 
                     #Write-Host $name
                     $dt.Rows.Add($row)
+
                 }
             }
         }
-        $dt | ConvertTo-Csv -NoTypeInformation | Out-File -FilePath $csvPath -Encoding UTF8
+        # define csv export path with count list
+        $csvPath = “C:\Users\skatwala.int\Desktop\testing xml to excel files\”+$project + “_"+ ($csvcount)+".csv”
+
+        Write-Host -f 'Magenta' $dt.Rows.Count
+
+        # new data table to import rows and export 
+        $dataexport = new-object "System.Data.DataTable"
+
+        #copy column headers
+        foreach ($column in $dt.Columns) {
+	        $dataexport.Columns.Add($column.ToString())
+        }
+        $i = 0
+        $totalCount = $dt.Rows.Count
+
+        foreach ($row in $dt){
+            #Write-Host $row.ItemArray
+
+            # define csv export path with count list
+            $csvPath = “C:\Users\skatwala.int\Desktop\testing xml to excel files\”+$project + “_"+ ($csvcount)+".csv”
+            
+            $dataexport.Rows.Add($row.ItemArray)
+            $count = $dataexport.Rows.Count
+            
+            Write-Host -f 'DarkMagenta' $count
+
+            if ($i -gt 10000) {
+
+                $dataexport | ConvertTo-Csv -NoTypeInformation | Out-File -FilePath $csvPath -Encoding UTF8 
+                Write-Host -f 'Magenta' "greater than 10, convert to csv" 
+                $i=1
+                $csvcount = $csvcount+1  
+                $dataexport.Rows.Clear()
+            }
+            $i=$i+1  
+        }
+        #$dt | ConvertTo-Csv -NoTypeInformation | Out-File -FilePath $csvPath -Encoding UTF8
+        $dataexport | ConvertTo-Csv -NoTypeInformation | Out-File -FilePath $csvPath -Encoding UTF8
     }
 }
-
