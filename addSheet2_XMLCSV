@@ -1,5 +1,7 @@
 # add second page to CSVs 
-# SK 12/2/2024
+# SK 12/4/2024
+
+# R
 
 #---------
 
@@ -17,40 +19,37 @@ op <- "C:/Users/skatwala.int/Desktop/testing xml to excel files/addSheet2"
 
 files <- list.files("C:/Users/skatwala.int/Desktop/testing xml to excel files", "*.csv")
 
+#XML file name - not for import	Name	Document File Name	File Name	Creation Date	Document Category	
+#Title	Description	Author	Designed By	Project Name
+#XML.file.name...not.for.import	Name	Document.File.Name	File.Name	Creation.Date	Document.Category	Title	Description	Author	Designed.By	Project.Name
+
+
 for (file in files){
   #print(file)
   path = str_c("C:/Users/skatwala.int/Desktop/testing xml to excel files","/",file)
   #print(path)
-  f <- read.csv(path)
+  f <- read.csv(path) %>% select(
+    #'xmlfile' = XML.file.name...not.for.import, #we don't need this for pw imports
+    'Name' = Name,
+    'Document File Name' = Document.File.Name,
+    'File Name' = File.Name,
+    'Creation Date'=Creation.Date,
+    'Document Category'=Document.Category,
+    'Title',
+    'Description',
+    'Author',
+    'Designed By'=Designed.By,
+    'Project Name'=Project.Name
+  )
+  
   xlname <- str_replace(file,".csv",".xlsx")
   xlpathName <- str_c(op,"/",xlname)
   write.xlsx(f, xlpathName)
-### need to edit headers to replace . with spaces
-  
+  ### need to edit headers to replace . with spaces
+  print(xlname)
 }
 
 
 
 ##############################
 # add sheet2
-
-sheet2 <- "C:/Users/skatwala.int/OneDrive - Chicago Transit Authority/Oce no contract 09142023/TF_Oce.xlsx"
-files2 <- list.files(op) #output folder location
-  for (file in files2){
-    path = str_c(op,"/",file)
-    
-    t <- as.data.frame(read.xlsx(sheet2, "Sheet2")) #file that contains template for sheet 2
-    h <- data.frame('Environment ID', '102') # extra bits empty columns values
-    
-    wb<- loadWorkbook(path)
-    addWorksheet(wb, "Sheet2")
-    
-    writeData(wb, "Sheet2", h, colNames = FALSE)
-    writeData(wb, "Sheet2", t, colNames = FALSE, startRow = 2)
-    saveWorkbook(wb, 
-                 path,
-                 overwrite = TRUE)
-    
-  }
-
-####### stop here ##################
