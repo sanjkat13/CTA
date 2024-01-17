@@ -1,0 +1,47 @@
+#sk 8/16/2023 3:24pm
+
+
+in windows powershell:
+
+$projectFolder = "Const Blue Line Illinois Medical District Signage Upgrade"
+$pathName = "\\orls-engrsvr\pnet-staging\cta-archives\" + $projectFolder + "\Documents\Document"
+
+$errorPath = "$projectFolder + "errors.txt"
+$logPath = "$projectFolder + "log.txt"
+
+#cd "\\orls-engrsvr\pnet-staging\cta-archives\**project folder**\Documents\Document"
+
+cd $pathName
+
+New-item  -Path "\\orls-engrsvr\pnet-staging\cta-archives\" + $projectFolder + ".txt"
+
+Get-ChildItem -Path *.zip -Recurse | Foreach-Object {
+$_.FullName 
+Expand-Archive -Path $_.FullName -DestinationPath $_.DirectoryName
+Set-Content "C:\Users\skatwala.int\Desktop\PNetZip_testing\errors.txt" $Error
+Set-Content "C:\Users\skatwala.int\Desktop\PNetZip_testing\log.txt" $_.FullName 
+}
+
+
+python shell:
+
+>>> file = open("C://Users//skatwala.int//Desktop//PNetZip_testing//errors.txt")
+>>> i = 0
+>>> for line in file.readlines:
+	error = line.split("file")[1].split("while")[0]
+	print(error)
+	i = i+1
+>>> print("error count: ", i)
+
+--------------------------------------------------------
+
+test
+
+cd "C:\Users\skatwala.int\Desktop\Const Blue Line Illinois Medical District Signage Upgrade"
+
+Get-ChildItem -Path *.zip -Recurse | Foreach-Object {
+$_.FullName 
+Expand-Archive -Path $_.FullName -DestinationPath $_.DirectoryName
+Set-Content "C:\Users\skatwala.int\Desktop\PNetZip_testing\errors.txt" $Error
+Set-Content "C:\Users\skatwala.int\Desktop\PNetZip_testing\log.txt" $_.FullName 
+}
